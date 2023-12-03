@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>District ParklingLot</title>
+    <style>
+        #map {
+            width: 100%;
+            height: 100vh;
+        }
+        .wrap {position: absolute;left: 0;bottom: 40px;width: 288px;height: 132px;margin-left: -144px;text-align: left;overflow: hidden;font-size: 12px;font-family: 'Malgun Gothic', dotum, '돋움', sans-serif;line-height: 1.5;}
+        .wrap * {padding: 0;margin: 0;}
+        .wrap .info {width: 286px;height: 120px;border-radius: 5px;border-bottom: 2px solid #ccc;border-right: 1px solid #ccc;overflow: hidden;background: #fff;}
+        .wrap .info:nth-child(1) {border: 0;box-shadow: 0px 1px 2px #888;}
+        .info .title {padding: 5px 0 0 10px;height: 30px;background: #eee;border-bottom: 1px solid #ddd;font-size: 15px;font-weight: bold;}
+        .info .close {position: absolute;top: 10px;right: 10px;color: #888;width: 17px;height: 17px;background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/overlay_close.png');}
+        .info .close:hover {cursor: pointer;}
+        .info .body {position: relative;overflow: hidden;}
+        .info .desc {position: relative;margin: 13px 0 0 90px;height: 75px;}
+        .desc .ellipsis {overflow: hidden;text-overflow: ellipsis;white-space: nowrap;}
+        .desc .jibun {font-size: 11px;color: #888;margin-top: -2px;}
+        .info .img {position: absolute;top: 6px;left: 5px;width: 73px;height: 71px;border: 1px solid #ddd;color: #888;overflow: hidden;}
+        .info:after {content: '';position: absolute;margin-left: -12px;left: 50%;bottom: 0;width: 22px;height: 12px;background: url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')}
+        .info .link {color: #5085BB;}
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f0a71e3c58491fa82af477356805abae&libraries=services"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=f0a71e3c58491fa82af477356805abae"></script>
+    <script>
+        var initialLat = {{ initial_lat }}
+        var initialLng = {{ initial_lng }}
+        var mapContainer = document.getElementById('map'),
+            mapOption = {
+                center: new kakao.maps.LatLng(initialLat, initialLng),
+                level: 7
+            };
+        //지도 생성
+        var map = new kakao.maps.Map(mapContainer, mapOption);
+        var markers = [];
+        var overlays = [];
+        var markerImages = {
+            gray: 'https://i.imgur.com/0PrTK0o.png',
+            red: 'https://i.imgur.com/PRPNSet.png',
+            yellow: 'https://i.imgur.com/USQOzOa.png',
+            green: 'https://i.imgur.com/dEtGydE.png'
+        }
+
+        var markerOverlayImages = {
+            "강남구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fimgnews.naver.net%2Fimage%2F056%2F2020%2F05%2F06%2F0010830728_001_20200506174210130.jpg&type=sc960_832',
+            "강동구":'https://www.gangdong.go.kr/design/theme/portal/images/common/footer_logo.png?ver=2023',
+            "강북구":'https://www.gangbuk.go.kr/www/images/common/footer_logo.png',
+            "강서구":'https://www.gangseo.seoul.kr/humanframe/theme/global/assets/image/common/img_logo_2023.png',
+            "관악구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fcafefiles.naver.net%2F20130109_121%2Fqkrwoduda_1357718990374AQmkj_JPEG%2F%25B0%25FC%25BE%25C7%25B1%25B8%25B7%25CE%25B0%25ED3.jpg&type=sc960_832',
+            "광진구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2F20151031_63%2Fpasstheway_1446281816846ASX5p_JPEG%2F2jrs048ts8p71k5o4kz0_400x400.jpeg&type=sc960_832',
+            "구로구":'https://search.pstatic.net/sunny/?src=https%3A%2F%2Fkmug.co.kr%2Fdata%2Ffile%2Fdesign%2Fthumb-data_logo_gurogu_760x460.jpg&type=sc960_832',
+            "금천구":'https://search.pstatic.net/sunny/?src=https%3A%2F%2Fkmug.co.kr%2Fdata%2Ffile%2Fdesign%2Fdata_logo_%25EA%25B8%2588%25EC%25B2%259C%25EA%25B5%25AC%25EB%25A1%259C%25EA%25B3%25A0.jpg&type=sc960_832',
+            "노원구":'https://gongu.copyright.or.kr/cmmn/file/getImage.do?atchFileId=452e64e94c2b6005805cd68110510e332ece390ce3bf224580a2e91074fc5160&fileSn=1',
+            "도봉구":'https://www.dobong.go.kr/images/2023/main/logo.png',
+            "동대문구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fcafefiles.naver.net%2F20130930_131%2Fcafe20day_1380541720878qiide_JPEG%2F%25B5%25BF%25B4%25EB%25B9%25AE%25B1%25B8_%25B7%25CE%25B0%25ED_%25B8%25B6%25C5%25A9_Converted.jpg&type=sc960_832',
+            "동작구":'https://www.dongjak.go.kr/editorUpload/ff4ebbf0-6425-4235-8d3b-121f2e38af3f.png',
+            "마포구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMTAxMDRfNDEg%2FMDAxNjA5NzM0NzAxNzM5.jj0mJaUuX-puOlAKPsxkpl6n0b8VW2CQhzHVENPfRicg.d1bmBjIui9kCLn-TAGS4KwJQQzld_8SIZUghT-bm8TEg.JPEG.coreap6%2F%25BD%25C3%25B1%25D7%25B4%25CF%25C3%25B3_%25BB%25F3%25C7%25CF%25C1%25B6%25C7%25D5_%25B8%25B6%25C6%25F7%25B1%25B8.jpg&type=sc960_832',
+            "서대문구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMTA0MTRfNjkg%2FMDAxNjE4Mzc1MzQ1NTg5.qoCZ3IBqsC6yHOrnfz5-uWjDRuj95HJc-4cvDELGO68g.5va0dJkOb_7od50gRSwMSvw9wbTxF-ahJQGAfifS7Awg.JPEG.pymlsk%2Fimg.jpg&type=sc960_832',
+            "서초구":'https://www.seocho.go.kr/images/seocho/m5/symbol1.gif',
+            "성동구":'https://www.sd.go.kr/site/main/images/common/svg_logo.svg',
+            "성북구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAxODA0MTVfMTY5%2FMDAxNTIzNzY2NzA4OTcz.T_sUdK5edYoYMOFw9ZcE0ySu8fQDtDYR9t4OPrDraPkg.2SVHgm4f1z7Ecx-BlPN4tQNI2UOJzL7mRlUV2LWICJog.JPEG.fnskaoffl57%2F%25BC%25BA%25BA%25CF.jpg&type=sc960_832',
+            "송파구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fcafefiles.naver.net%2F20130822_78%2Fcafe20day_1377107737547baJh2_JPEG%2F%25BC%25DB%25C6%25C4%25B1%25B8%25C3%25BB_%25B7%25CE%25B0%25ED_%25B8%25B6%25C5%25A9_Converted.jpg&type=sc960_832',
+            "양천구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAxNzExMjFfMTc1%2FMDAxNTExMjc2MjE0ODk1.4JfBivepyEMmv9AiXi-XKCGJaUr-1AGGmS1IzS5fST4g.64Umi05LocUsU9pDGng7_rU8CHrC--v00zq9WrGE6c4g.JPEG.passtheway%2F%25B1%25B8%25B8%25B6%25C5%25A9%2528%25BC%25BC%25B7%25CE%25291.jpg&type=sc960_832',
+            "영등포구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fimgnews.naver.net%2Fimage%2F5290%2F2018%2F06%2F04%2F0000111331_001_20180604114631516.jpg&type=sc960_832',
+            "용산구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMTA1MjlfMTUx%2FMDAxNjIyMjkxNjMzOTc0.CmWdgWPOL4OAnoYOwmGnToaWOkuni6KcGZmeQ4cwel8g.nX5blDXKrBlvL09s-0a4ZIt9BNEb-DQ5I6oFzX5R64Yg.JPEG.saveyou90%2F%25BF%25EB%25BB%25EA%25B1%25B8%25B7%25CE%25B0%25ED.JPG&type=sc960_832',
+            "은평구":'https://bike-korea.com/files/thumbnails/664/030/350x200.crop.jpg?20200707160154',
+            "종로구":'https://mblogthumb-phinf.pstatic.net/MjAxOTA4MTJfNjYg/MDAxNTY1NTg0MDAwMjg4.60AQaaJb54PEBN-6_MnU0xbBlxVQqxzy45qIffdVhRYg.IDvmSi7jDmhJ_jZxachn_qpEpGeoeB0xGRmrFVDfExog.JPEG.beelike1115/SE-2ad08924-156d-4f5e-a40d-5842a081b324.jpg?type=w800',
+            "중구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMDAxMjFfODEg%2FMDAxNTc5NTg5MDExMTI0.knt6JJp6NtbU95bBzzTeiZ9cSZuFj2kTGwZ-e18Ux5Mg.czicQWi7eZ-XBTAiDej3JFUhZLZOj73a_63iMV1AYKcg.JPEG.passtheway%2F%25BD%25C3%25B1%25D7%25B4%25CF%25C3%25B3_%25BB%25F3%25C7%25CF%25C1%25B6%25C7%25D5%25C7%25FC_%25C6%25ED%25C1%25FD_1.jpg&type=sc960_832',
+            "중랑구":'https://search.pstatic.net/common/?src=http%3A%2F%2Fblogfiles.naver.net%2FMjAyMTA1MDVfNzUg%2FMDAxNjIwMjIxMTU1MTUw.TaUS8RyR-v_-If9w395dytY7PENdOnWNN1Ih8hUA5sAg.V8LhE8z87iPud7g9p-zZOBXsHsYVD4TpFw0fwWeB0aIg.PNG.rladusdhr7230%2F%25C1%25DF%25B6%25FB%25B1%25B8%25C3%25BB.png&type=sc960_832'
+        }
+        // 마커를 찍을 좌표들
+        var markerCoordinates = {{ marker_set|safe }};
+        markerCoordinates.forEach(function(markerInfo){
+            this.defaultMarker = new kakao.maps.MarkerImage(
+                markerImages[markerInfo.marker_color],
+                new kakao.maps.Size(35, 35),
+            );
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: new kakao.maps.LatLng(markerInfo.lat, markerInfo.lng),
+                title: markerInfo.parking_code,
+                name: markerInfo.parking_name,
+                addr: markerInfo.parking_addr,
+                image: this.defaultMarker,
+            });
+            markers.push(marker)
+            var overlayLink = "parking_detail/" + markerInfo.parking_code + "/"
+            var overlayImages = markerOverlayImages[markerInfo.parking_district]
+            var overlayContent = '<div class="wrap">' +
+                                '    <div class="info">' +
+                                '        <div class="title">' + markerInfo.name +
+                                '            <div class="close" onclick="closeOverlay()" title="닫기"></div>' +
+                                '        </div>' +
+                                '        <div class="body">' +
+                                '            <div class="img">' +
+                                '                <img src=' + overlayImages + ' width="73" height="70">' +
+                                '           </div>' +
+                                '            <div class="desc">' +
+                                '                <div class="ellipsis">주소: ' + markerInfo.addr + ' </div>' +
+                                '                <div class="ellipsis">현재 주차면: ' + markerInfo.current + '</div>' +
+                                '                <div class="ellipsis">총 주차면: '+ markerInfo.capacity + '</div>' +
+                                '                <div><a href=' + overlayLink + '>상세정보</a></div>' +
+                                '            </div>' +
+                                '        </div>' +
+                                '    </div>' +
+                                '</div>';
+            var overlay = new kakao.maps.CustomOverlay({
+                content: overlayContent,
+                map: null,
+                position: marker.getPosition()
+            });
+            overlays.push(overlay);
+            kakao.maps.event.addListener(marker, 'click', function(){
+                overlays.forEach(function(overlay) {
+                    overlay.setMap(null); // 모든 오버레이 닫기
+                });
+                overlay.setMap(map); // 해당 마커에 대한 오버레이 열기
+            });
+        });
+        function closeOverlay(){
+            overlays.forEach(function(overlay){
+               overlay.setMap(null);
+            });
+        }
+
+    </script>
+</body>
+</html>

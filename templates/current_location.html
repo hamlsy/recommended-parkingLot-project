@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get Current Location</title>
+    <script>
+    // 카운트다운 함수
+    function startCountdown() {
+      var count = 30; // 카운트 다운 숫자 설정
+      var countdown = document.getElementById("countdown");
+
+      var timer = setInterval(function() {
+        countdown.innerHTML = count; // HTML 요소에 시간 표시
+        count--;
+
+        if (count < 0) {
+          clearInterval(timer); // 카운트다운이 0 이하로 내려가면 타이머 정지
+          countdown.innerHTML = "다시 시도해주세요!"; // 카운트가 끝났음을 표시
+        } else {
+            countdown.innerHTML = count + "초 경과 시 다시 시도하시기 바랍니다."
+        }
+      }, 1000); // 1초마다 업데이트
+    }
+    </script>
+</head>
+<body onload="startCountdown()">
+    <form id="location-form" method="post" action="{% url 'new_current_map' %}">
+        {% csrf_token %}
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
+        <h4>위치 탐색 중입니다. 잠시 기다려주세요.. 현재 위치가 정확하지 않을 수 있습니다.</h4>
+        <div id="countdown" style="font-size: 18px; text-align: center;"></div>
+    </form>
+
+    <script>
+        // 현재 위치 가져오기
+        navigator.geolocation.getCurrentPosition(success, error);
+
+        function success(position) {
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+
+            // hidden input에 현재 위치 좌표 추가
+            document.getElementById('latitude').value = latitude;
+            document.getElementById('longitude').value = longitude;
+
+            // 폼 제출
+            document.getElementById('location-form').submit();
+        }
+
+        function error(err) {
+            console.warn(`ERROR(${err.code}): ${err.message}`);
+        }
+    </script>
+</body>
+</html>

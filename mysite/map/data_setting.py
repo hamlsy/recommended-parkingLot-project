@@ -2,6 +2,7 @@ import pandas as pd
 from haversine import haversine
 
 
+#혼잡도 비율 색상
 def set_color(current, capacity):
     degree = (int(current)/int(capacity))*100
     if degree >= 100: return 'gray'
@@ -44,8 +45,7 @@ def add_marker_set(data_select_row):
     marker_set = marker_set_filtered.to_dict('records')
     for marker_info in marker_set:
         marker_info["marker_color"] = set_color(marker_info["current"], marker_info["capacity"])
-    # for marker_info in marker_set_df.to_dict('records'):
-    #     marker_info["marker_color"] = set_color(marker_info["current"], marker_info["capacity"])
+
     return marker_set
 
 def sort_distance_marker(user_lat, user_lng, marker_set):
